@@ -89,6 +89,12 @@ public class ElectricService {
         return resJson;
     }
 
+    /**
+     * 根据变电站名称查询
+     *
+     * @param name
+     * @return
+     */
     public JSONObject querySubsByName(String name) {
         JSONObject resJson = new JSONObject();
         if (name == null) {
