@@ -4,7 +4,7 @@
 var  scale, duration, easingFunction;
 var highlightActive = false;
 
-function focusOn(id,nw) {
+var focusOn = function(id,nw) {
     debugger;
     duration = 100;
     scale = 0.7;
@@ -128,7 +128,7 @@ function focusOn(id,nw) {
     }
 }
 
-function mergeGraph(yxNetwork,scNetwork){
+var mergeGraph = function(yxNetwork,scNetwork){
     document.getElementById("diff_type")[1].selected=true;
     cNodes = new vis.DataSet([]);
     cEdges = new vis.DataSet([]);
@@ -277,66 +277,6 @@ var neighbourhoodHighlight = function (params, nodesDataset,nw){
     nodesDataset.update(updateArray);
 }
 
-function WeChatShow(){
-    var height = document.body.scrollHeight;
-    var width = document.body.scrollWidth;
-    var weChatMask = document.getElementById("weChatMask");
-    weChatMask.style.display=null;
-    weChatMask.style.position="absolute";
-    weChatMask.style.zIndex = "8888";
-    weChatMask.style.width=width+"px";
-    weChatMask.style.height=height+"px";
-    weChatMask.style.background="#f5f5f5";
-    weChatMask.style.opacity="0.5";
-    weChatMask.style.left=0;
-    weChatMask.style.top=0;
-    var evt = event || window.event;
-    var event = getMousePos(evt);
-    $("#weChatMask").fakeLoader({
-        timeToHide:60000,
-        bgColor:"#000000",
-        spinner:"spinner3"
-    });
-}
-
-function hideWeChat(){
-    var weChatMask = document.getElementById("weChatMask");
-    weChatMask.style.display="none";
-}
-
-function getMousePos(event) {
-    var e = event || window.event;
-    var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
-    var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
-    var x = e.pageX || e.clientX + scrollX;
-    var y = e.pageY || e.clientY + scrollY;
-    //alert('x: ' + x + '\ny: ' + y);
-    return { 'x': x, 'y': y };
-}
-
-function exportDiffCsv(){
-    WeChatShow();
-    var ids = [];
-    for(var k in nodes._data){
-        if(nodes._data[k].group.indexOf('DIFF') != -1){
-            ids[ids.length]= k;
-        }
-    }
-
-    for(var i in pmsNodes._data){
-        if(pmsNodes._data[i].group.indexOf('DIFF') != -1){
-            ids[ids.length]= i;
-        }
-    }
-    var subName = $.trim($('#electricity').val());
-    downLoadFile({
-        url:"/electric/diffExport",
-        data:{
-            'diffIds':ids,
-            'subName':subName
-        }
-    });
-}
 
 var downLoadFile = function (options) {
     var config = $.extend(true, { method: 'post' }, options);
@@ -374,5 +314,79 @@ var diffSelect = function (){
             }
         }
     }
+}
 
+
+var networkClick = function (params,nw){
+    document.getElementById('eventSpan').innerHTML ='';
+    if(params.nodes.length == 1 ){
+        var id = params.nodes[0];
+        focusOn(id,nw);
+        $.ajax({
+            url: '/electric/findById/'+id,
+            success: function(data){
+                var result = data.N;
+                var htmlStr = '';
+                for(key in result){
+                    var value = $.trim(result[key]);
+                    htmlStr += key +':'+value +'</br>';
+                }
+                document.getElementById('eventSpan').innerHTML = htmlStr;
+            },
+            dataType: "json"
+        });
+    } else if (params.nodes.length == 0){
+        neighbourhoodHighlight(params,pmsNodes,pmsNetwork);
+        highlightActive = true;
+        neighbourhoodHighlight(params,nodes,network);
+        highlightActive = true;
+        neighbourhoodHighlight(params,cNodes,cNetwork);
+
+        network.unselectAll();
+        pmsNetwork.unselectAll();
+        cNetwork.unselectAll();
+    }
+}
+
+var networkDoubleClick = function (params,ns,es){
+    var size = params.nodes.length;
+    var id ;
+    if(size ==1){
+        id = params.nodes[0];
+        var excIds = '';
+        for(i =0;i<params.edges.length;i++){
+            var _from = es._data[params.edges[i]].from;
+            var _to = es._data[params.edges[i]].to;
+            excIds+=id+',';
+            if(_from == id){
+                excIds+= _to;
+            }
+            if(_to == id){
+                excIds+= _from;
+            }
+            if(i!=params.edges.length-1){
+                excIds+=',';
+            }
+        }
+        $.ajax({
+            url: '/electric/relById',
+            type: 'POST',
+            data:{'id':id,'excIds':excIds},
+            success: function(data){
+                var eData = JSON.parse(data.eData);
+                var vData = JSON.parse(data.vData);
+                for(v in vData){
+                    if(!ns._data[vData[v].id]){
+                        ns.add(vData[v]);
+                    }
+                };
+                for(e in eData){
+                    if(!es._data[eData[e].id]){
+                        es.add(eData[e]);
+                    }
+                }
+            },
+            dataType: 'json'
+        });
+    }
 }

@@ -173,227 +173,25 @@ function initNetWork(){
     pmsNetwork =new vis.Network(pmsContainer, pmsData, options);
     options.manipulation.locale='ch_hb';
     cNetwork =new vis.Network(cContainer, cData, options);
-
+    //单击事件
     network.on("click", function (params) {
-        document.getElementById('eventSpan').innerHTML ='';
-        if(params.nodes.length == 1 ){
-            var id = params.nodes[0];
-            focusOn(id,network);
-            $.ajax({
-                url: '/electric/findById/'+id,
-                success: function(data){
-                    var result = data.N;
-                    var htmlStr = '';
-                    for(key in result){
-                        var value = $.trim(result[key]);
-                        htmlStr += key +':'+value +'</br>';
-                    }
-                    document.getElementById('eventSpan').innerHTML = htmlStr;
-                },
-                dataType: "json"
-            });
-        } else if (params.nodes.length == 0){
-            neighbourhoodHighlight(params,pmsNodes,pmsNetwork);
-            highlightActive = true;
-            neighbourhoodHighlight(params,nodes,network);
-            highlightActive = true;
-            neighbourhoodHighlight(params,cNodes,cNetwork);
-
-            network.unselectAll();
-            pmsNetwork.unselectAll();
-            cNetwork.unselectAll();
-        }
+        networkClick(params,network);
     });
-
-    network.on("doubleClick", function (params) {
-        var size = params.nodes.length;
-        var id ;
-        if(size ==1){
-            id = params.nodes[0];
-            var excIds = '';
-            for(i =0;i<params.edges.length;i++){
-                var _from = edges._data[params.edges[i]].from;
-                var _to = edges._data[params.edges[i]].to;
-                excIds+=id+',';
-                if(_from == id){
-                    excIds+= _to;
-                }
-                if(_to == id){
-                    excIds+= _from;
-                }
-                if(i!=params.edges.length-1){
-                    excIds+=',';
-                }
-            }
-            $.ajax({
-                url: '/electric/relById',
-                type: 'POST',
-                data:{'id':id,'excIds':excIds},
-                success: function(data){
-                    var eData = JSON.parse(data.eData);
-                    var vData = JSON.parse(data.vData);
-                    for(v in vData){
-                        if(!nodes._data[vData[v].id]){
-                            nodes.add(vData[v]);
-                        }
-                    };
-                    for(e in eData){
-                        if(!edges._data[eData[e].id]){
-                            edges.add(eData[e]);
-                        }
-                    }
-                },
-                dataType: 'json'
-            });
-        }
-    });
-
     pmsNetwork.on("click", function (params) {
-        document.getElementById('eventSpan').innerHTML ='';
-        if(params.nodes.length == 1 ){
-            var id = params.nodes[0];
-            focusOn(id,pmsNetwork);
-            $.ajax({
-                url: '/electric/findById/'+id,
-                success: function(data){
-                    var result = data.N;
-                    var htmlStr = '';
-                    for(key in result){
-                        var value = $.trim(result[key]);
-                        htmlStr += key +':'+value +'</br>';
-                    }
-                    document.getElementById('eventSpan').innerHTML = htmlStr;
-                },
-                dataType: "json"
-            });
-        } else if(params.nodes.length == 0 ){
-            neighbourhoodHighlight(params,pmsNodes,pmsNetwork);
-            highlightActive = true;
-            neighbourhoodHighlight(params,nodes,network);
-            highlightActive = true;
-            neighbourhoodHighlight(params,cNodes,cNetwork);
-
-            network.unselectAll();
-            pmsNetwork.unselectAll();
-            cNetwork.unselectAll();
-        }
+        networkClick(params,pmsNetwork);
     });
-
-    pmsNetwork.on("doubleClick", function (params) {
-        var size = params.nodes.length;
-        var id ;
-        if(size ==1){
-            id = params.nodes[0];
-            var excIds = '';
-            excIds+=id+',';
-            for(i =0;i<params.edges.length;i++){
-                var _from = pmsEdges._data[params.edges[i]].from;
-                var _to = pmsEdges._data[params.edges[i]].to;
-                if(_from == id){
-                    excIds+= _to;
-                }
-                if(_to == id){
-                    excIds+= _from;
-                }
-                if(i!=params.edges.length-1){
-                    excIds+=',';
-                }
-            }
-            $.ajax({
-                url: '/electric/relById',
-                type: 'POST',
-                data:{'id':id,'excIds':excIds},
-                success: function(data){
-                    var eData = JSON.parse(data.eData);
-                    var vData = JSON.parse(data.vData);
-                    for(v in vData){
-                        if(!pmsNodes._data[vData[v].id]){
-                            pmsNodes.add(vData[v]);
-                        }
-                    };
-                    for(e in eData){
-                        if(!pmsEdges._data[eData[e].id]){
-                            pmsEdges.add(eData[e]);
-                        }
-                    }
-                },
-                dataType: 'json'
-            });
-        }
-    });
-
     cNetwork.on("click", function (params) {
-        document.getElementById('eventSpan').innerHTML ='';
-        if(params.nodes.length == 1 ){
-            var id = params.nodes[0];
-            focusOn(id,cNetwork);
-            $.ajax({
-                url: '/electric/findById/'+id,
-                success: function(data){
-                    var result = data.N;
-                    var htmlStr = '';
-                    for(key in result){
-                        var value = $.trim(result[key]);
-                        htmlStr += key +':'+value +'</br>';
-                    }
-                    document.getElementById('eventSpan').innerHTML = htmlStr;
-                },
-                dataType: "json"
-            });
-        }else if (params.nodes.length == 0){
-             neighbourhoodHighlight(params,pmsNodes,pmsNetwork);
-             highlightActive = true;
-             neighbourhoodHighlight(params,nodes,network);
-             highlightActive = true;
-             neighbourhoodHighlight(params,cNodes,cNetwork);
-
-             network.unselectAll();
-             pmsNetwork.unselectAll();
-             cNetwork.unselectAll();
-         }
+        networkClick(params,cNetwork);
     });
-
+    //双击事件
+    network.on("doubleClick", function (params) {
+        networkDoubleClick(params,nodes,edges);
+    });
+    pmsNetwork.on("doubleClick", function (params) {
+        networkDoubleClick(params,pmsNodes,pmsEdges);
+    });
     cNetwork.on("doubleClick", function (params) {
-        var size = params.nodes.length;
-        var id ;
-        if(size ==1){
-            id = params.nodes[0];
-            var excIds = '';
-            for(i =0;i<params.edges.length;i++){
-                var _from = cEdges._data[params.edges[i]].from;
-                var _to = cEdges._data[params.edges[i]].to;
-                excIds+=id+',';
-                if(_from == id){
-                    excIds+= _to;
-                }
-                if(_to == id){
-                    excIds+= _from;
-                }
-                if(i!=params.edges.length-1){
-                    excIds+=',';
-                }
-            }
-            $.ajax({
-                url: '/electric/relById',
-                type: 'POST',
-                data:{'id':id,'excIds':excIds},
-                success: function(data){
-                    var eData = JSON.parse(data.eData);
-                    var vData = JSON.parse(data.vData);
-                    for(v in vData){
-                        if(!cNodes._data[vData[v].id]){
-                            cNodes.add(vData[v]);
-                        }
-                    };
-                    for(e in eData){
-                        if(!cEdges._data[eData[e].id]){
-                            cEdges.add(eData[e]);
-                        }
-                    }
-                },
-                dataType: 'json'
-            });
-        }
+        networkDoubleClick(params,cNodes,cEdges);
     });
 
 }
