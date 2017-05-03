@@ -436,22 +436,28 @@ public class ElectricService {
                     subsSourceIdrArray.add("YX");
                     break;
                 case "LINES":
-                    linesIdArray.add(node.id());
-                    linesNameArray.add(node.get("LINE_NAME").asString().trim());
-                    linesVoltArray.add(node.get("VOLT_CODE").asString().trim());
-                    linesAddrArray.add("铜川市");
-                    linesPmsIdrArray.add(node.get("PMS_LINE_ID").asString().trim());
-                    linesParentIdrArray.add(getParentId(yx_edgeSet, node.id()));
-                    linesSourceIdrArray.add("YX");
+                    List<Long> linesParentIds = getParentId(yx_edgeSet, node.id());
+                    for (long parentId : linesParentIds) {
+                        linesIdArray.add(node.id());
+                        linesNameArray.add(node.get("LINE_NAME").asString().trim());
+                        linesVoltArray.add(node.get("VOLT_CODE").asString().trim());
+                        linesAddrArray.add("铜川市");
+                        linesPmsIdrArray.add(node.get("PMS_LINE_ID").asString().trim());
+                        linesParentIdrArray.add(parentId);
+                        linesSourceIdrArray.add("YX");
+                    }
                     break;
                 case "TRAN":
-                    transIdArray.add(node.id());
-                    transNameArray.add(node.get("TRAN_NAME").asString().trim());
-                    transVoltArray.add(node.get("FRSTSIDE_VOLT_CODE").asString().trim());
-                    transAddrArray.add("铜川市");
-                    transPmsIdrArray.add(node.get("PMS_EQUIP_ID").asString().trim());
-                    transParentIdrArray.add(getParentId(yx_edgeSet, node.id()));
-                    transSourceIdrArray.add("YX");
+                    List<Long> tranParentIds = getParentId(yx_edgeSet, node.id());
+                    for (long parentId : tranParentIds) {
+                        transIdArray.add(node.id());
+                        transNameArray.add(node.get("TRAN_NAME").asString().trim());
+                        transVoltArray.add(node.get("FRSTSIDE_VOLT_CODE").asString().trim());
+                        transAddrArray.add("铜川市");
+                        transPmsIdrArray.add(node.get("PMS_EQUIP_ID").asString().trim());
+                        transParentIdrArray.add(parentId);
+                        transSourceIdrArray.add("YX");
+                    }
                     break;
                 case "PMS_SUBS":
                     subsIdArray.add(node.id());
@@ -463,22 +469,28 @@ public class ElectricService {
                     subsSourceIdrArray.add("SC");
                     break;
                 case "PMS_LINES":
-                    linesIdArray.add(node.id());
-                    linesNameArray.add(node.get("XLMC").asString().trim());
-                    linesVoltArray.add(node.get("DYDJMC").asString().trim());
-                    linesAddrArray.add("铜川市");
-                    linesPmsIdrArray.add(node.get("OBJ_ID").asString().trim());
-                    linesParentIdrArray.add(getParentId(sc_edgeSet, node.id()));
-                    linesSourceIdrArray.add("SC");
+                    List<Long> pmslinesParentIds = getParentId(sc_edgeSet, node.id());
+                    for (long parentId : pmslinesParentIds) {
+                        linesIdArray.add(node.id());
+                        linesNameArray.add(node.get("XLMC").asString().trim());
+                        linesVoltArray.add(node.get("DYDJMC").asString().trim());
+                        linesAddrArray.add("铜川市");
+                        linesPmsIdrArray.add(node.get("OBJ_ID").asString().trim());
+                        linesParentIdrArray.add(parentId);
+                        linesSourceIdrArray.add("SC");
+                    }
                     break;
                 case "PMS_TRAN":
-                    transIdArray.add(node.id());
-                    transNameArray.add(node.get("SBMC").asString().trim());
-                    transVoltArray.add(node.get("DYDJMC").asString().trim());
-                    transAddrArray.add("铜川市");
-                    transPmsIdrArray.add(node.get("OBJ_ID").asString().trim());
-                    transParentIdrArray.add(getParentId(sc_edgeSet, node.id()));
-                    transSourceIdrArray.add("SC");
+                    List<Long> pmstranParentIds = getParentId(sc_edgeSet, node.id());
+                    for (long parentId : pmstranParentIds) {
+                        transIdArray.add(node.id());
+                        transNameArray.add(node.get("SBMC").asString().trim());
+                        transVoltArray.add(node.get("DYDJMC").asString().trim());
+                        transAddrArray.add("铜川市");
+                        transPmsIdrArray.add(node.get("OBJ_ID").asString().trim());
+                        transParentIdrArray.add(parentId);
+                        transSourceIdrArray.add("SC");
+                    }
                     break;
             }
         }
@@ -495,6 +507,7 @@ public class ElectricService {
      * @param paramJson
      */
     public JSONObject sendRestfulRequest(JSONObject paramJson) {
+        System.out.println(paramJson.toString());
         String url = "http://127.0.0.1:5000/get_diff";
         return JSONObject.parseObject(HttpRestfulClient.sendRequest(url, JSON.toJSONString(paramJson)));
     }
@@ -593,12 +606,13 @@ public class ElectricService {
     }
 
 
-    public long getParentId(Set<Relationship> edgeSet, long id) {
+    public List<Long> getParentId(Set<Relationship> edgeSet, long id) {
+        List<Long> parentIds = new ArrayList<>();
         for (Relationship r : edgeSet) {
             if (r.endNodeId() == id) {
-                return r.startNodeId();
+                parentIds.add(r.startNodeId());
             }
         }
-        return -1;
+        return parentIds;
     }
 }
