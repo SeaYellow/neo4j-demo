@@ -315,6 +315,7 @@ function getMousePos(event) {
 }
 
 function exportDiffCsv(){
+    WeChatShow();
     var ids = [];
     for(var k in nodes._data){
         if(nodes._data[k].group.indexOf('DIFF') != -1){
@@ -349,6 +350,7 @@ var downLoadFile = function (options) {
     $(document.body).append($iframe);
     $form[0].submit();
     $iframe.remove();
+    hideWeChat();
 }
 
 var diffSelect = function (){
