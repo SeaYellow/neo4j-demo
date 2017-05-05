@@ -6,10 +6,12 @@
   var selectedSize = 40;
   var sameData;
   var hiddenNodes = [] ;
-function initNetWork(){
+var initNetWork = function(){
+    //获取承载图的div标签对象
     var container = document.getElementById('network');
     var pmsContainer = document.getElementById('pmsNetwork');
     var cContainer = document.getElementById('cNetwork');
+    //vis图的配置项。
     var options = {
         highlightNearest:true,
         nodes: {
@@ -149,7 +151,9 @@ function initNetWork(){
     // legend.push({id: 'LLINE', x: x, y: y + step, label: 'Switch', group: 'switch', value: 1, fixed: true,  physics:false});
     // legend.push({id: 'LTRAN', x: x, y: y + 2 * step, label: 'Server', group: 'server', value: 1, fixed: true,  physics:false});
     // legend.push({id: 'LDIFF', x: x, y: y + 3 * step, label: 'Computer', group: 'desktop', value: 1, fixed: true,  physics:false});
-
+    //图的节点和边数据
+    //DataSet可直接将对象数组传入生成图，生成的图会自动调整节点位置以及缩放比例，但需要一定的加载时间
+    //此处采用的方式是，初始化一个没有节点和边的空图，之后用增加节点的方式生成图，可大幅缩短加载时间
     nodes = new vis.DataSet([]);
     edges = new vis.DataSet([]);
     pmsNodes = new vis.DataSet([]);
@@ -195,7 +199,8 @@ function initNetWork(){
     });
 
 }
-  function startNetwork(param) {
+//发送请求，获取节点和边的数据
+  var startNetwork = function(param) {
       $.ajax({
                url: '/electric/queryByCql',
                data:param,
@@ -207,6 +212,7 @@ function initNetWork(){
                dataType: "json"
        });
   }
+//将所得节点放入图中，根据节点数量调整缩放比例
   var loadData = function(responseData){
        nodes = new vis.DataSet([]);
        edges = new vis.DataSet([]);
@@ -260,9 +266,11 @@ function initNetWork(){
            pmsNetwork.body.view.scale = 0.09;
        }
   }
-  var refresh = function(){
-    startNetwork();
-  };
+
+  // var refresh = function(){
+  //   startNetwork();
+  // };
+  //单击搜索按钮，生成图
   var restart = function(){
 //       if(valid()){
        WeChatShow();
@@ -276,39 +284,41 @@ function initNetWork(){
 //       }
 
   };
-  function prevent(e) {
-      e.preventDefault ? e.preventDefault() : e.returnValue = false;
-  }
-  function digitInput(el, e) {
-      var ee = e || window.event; // FF、Chrome IE下获取事件对象
-      var c = e.charCode || e.keyCode; //FF、Chrome IE下获取键盘码
-      //var txt = $('label').text();
-      //$('label').text(txt + ' ' + c);
-      var val = el.val();
-      if (c == 110 || c == 190){ // 110 (190) - 小(主)键盘上的点
-          (val.indexOf(".") >= 0 || !val.length) && prevent(e); // 已有小数点或者文本框为空，不允许输入点
-      } else {
-          if ((c != 8 && c != 46 && // 8 - Backspace, 46 - Delete
-              (c < 37 || c > 40) && // 37 (38) (39) (40) - Left (Up) (Right) (Down) Arrow
-              (c < 48 || c > 57) && // 48~57 - 主键盘上的0~9
-              (c < 96 || c > 105)) // 96~105 - 小键盘的0~9
-              || e.shiftKey) { // Shift键，对应的code为16
-              prevent(e); // 阻止事件传播到keypress
-          }
-      }
-  }
+  // function prevent(e) {
+  //     e.preventDefault ? e.preventDefault() : e.returnValue = false;
+  // }
+  // function digitInput(el, e) {
+  //     var ee = e || window.event; // FF、Chrome IE下获取事件对象
+  //     var c = e.charCode || e.keyCode; //FF、Chrome IE下获取键盘码
+  //     //var txt = $('label').text();
+  //     //$('label').text(txt + ' ' + c);
+  //     var val = el.val();
+  //     if (c == 110 || c == 190){ // 110 (190) - 小(主)键盘上的点
+  //         (val.indexOf(".") >= 0 || !val.length) && prevent(e); // 已有小数点或者文本框为空，不允许输入点
+  //     } else {
+  //         if ((c != 8 && c != 46 && // 8 - Backspace, 46 - Delete
+  //             (c < 37 || c > 40) && // 37 (38) (39) (40) - Left (Up) (Right) (Down) Arrow
+  //             (c < 48 || c > 57) && // 48~57 - 主键盘上的0~9
+  //             (c < 96 || c > 105)) // 96~105 - 小键盘的0~9
+  //             || e.shiftKey) { // Shift键，对应的code为16
+  //             prevent(e); // 阻止事件传播到keypress
+  //         }
+  //     }
+  // }
   $(function(){
       initNetWork();
   });
-  function valid(){
-      var electricity = $.trim($("input[name=electricity]").val());
-      if (electricity == ''){
-          $("#errorMsg").css("display",'');
-         return false;
-      }
-      $("#errorMsg").css("display",'none');
-      return true;
-  }
+  // function valid(){
+  //     var electricity = $.trim($("input[name=electricity]").val());
+  //     if (electricity == ''){
+  //         $("#errorMsg").css("display",'');
+  //        return false;
+  //     }
+  //     $("#errorMsg").css("display",'none');
+  //     return true;
+  // }
+
+  //图标操作相关逻辑
   function clearPopUp() {
       document.getElementById('saveButton').onclick = null;
       document.getElementById('cancelButton').onclick = null;
@@ -326,35 +336,36 @@ function initNetWork(){
       clearPopUp();
       callback(data);
   }
+  //输入框回车事件
   function getKey(){
       if(event.keyCode == '13'){
           restart();
       }
-
   }
-  var closeMsg = function(){
-      $("#errorMsg").css("display","none");
+  // var closeMsg = function(){
+  //     $("#errorMsg").css("display","none");
+  // }
+  //差异比较逻辑
+  var difAnalysis = function(){
+      WeChatShow();
+      var subName = $("#subNameId").val();
+      var param = {
+          subName : subName
+      };
+      $.ajax({
+          url: '/electric/difAnalysis',
+          data: param,
+          type: 'POST',
+          success: function(data){
+              debugger;
+              loadData(data);
+              diffFlag = true;
+              hideWeChat();
+          },
+          dataType: "json"
+      });
   }
-var difAnalysis = function(){
-    WeChatShow();
-    var subName = $("#subNameId").val();
-    var param = {
-        subName : subName
-    };
-    $.ajax({
-        url: '/electric/difAnalysis',
-        data: param,
-        type: 'POST',
-        success: function(data){
-        debugger;
-            loadData(data);
-            diffFlag = true;
-            hideWeChat();
-        },
-        dataType: "json"
-    });
-}
-
+//跨系统匹配逻辑
  var combine = function(){
      WeChatShow();
      mergeGraph(network,pmsNetwork);

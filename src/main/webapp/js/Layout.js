@@ -1,5 +1,5 @@
-
-function WeChatShow(){
+//加载蒙版
+var WeChatShow = function(){
     var height = document.body.scrollHeight;
     var width = document.body.scrollWidth;
     var weChatMask = document.getElementById("weChatMask");
@@ -20,13 +20,13 @@ function WeChatShow(){
         spinner:"spinner3"
     });
 }
-
-function hideWeChat(){
+//隐藏蒙版
+var hideWeChat = function(){
     var weChatMask = document.getElementById("weChatMask");
     weChatMask.style.display="none";
 }
-
-function getMousePos(event) {
+//
+var getMousePos = function(event) {
     var e = event || window.event;
     var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
     var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
@@ -35,8 +35,8 @@ function getMousePos(event) {
     //alert('x: ' + x + '\ny: ' + y);
     return { 'x': x, 'y': y };
 }
-
-function exportDiffCsv(){
+//数据导出逻辑
+var exportDiffCsv = function(){
     WeChatShow();
     var ids = [];
     for(var k in nodes._data){
@@ -58,4 +58,19 @@ function exportDiffCsv(){
             'subName':subName
         }
     });
+}
+
+var downLoadFile = function (options) {
+    var config = $.extend(true, { method: 'post' }, options);
+    var $iframe = $('<iframe id="down-file-iframe" />');
+    var $form = $('<form target="down-file-iframe" method="' + config.method + '" />');
+    $form.attr('action', config.url);
+    for (var key in config.data) {
+        $form.append('<input type="hidden" name="' + key + '" value="' + config.data[key] + '" />');
+    }
+    $iframe.append($form);
+    $(document.body).append($iframe);
+    $form[0].submit();
+    $iframe.remove();
+    hideWeChat();
 }
